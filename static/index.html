@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>文墨工作台</title>
+  <link rel="stylesheet" href="./app.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="seal" aria-hidden="true">文</div><div><strong>文墨工作台</strong><span>本地文档生成 · v4.2</span></div></div>
+      <nav aria-label="文档类型">
+        <h2>文档类型</h2>
+        <button type="button" data-kind="resume" aria-pressed="true"><span class="nav-icon" aria-hidden="true">简</span>简历</button>
+        <button type="button" data-kind="application" aria-pressed="false"><span class="nav-icon" aria-hidden="true">申</span>申请书</button>
+        <button type="button" data-kind="proposal" aria-pressed="false"><span class="nav-icon" aria-hidden="true">研</span>开题报告</button>
+        <button type="button" data-kind="slides" aria-pressed="false"><span class="nav-icon" aria-hidden="true">演</span>PPT</button>
+        <button type="button" data-kind="paper" aria-pressed="false"><span class="nav-icon" aria-hidden="true">论</span>论文</button>
+      </nav>
+      <div class="sidebar-foot">
+        <button type="button" id="history-open"><span class="nav-icon utility-icon" aria-hidden="true">◷</span>生成历史</button>
+        <div class="local"><strong><span></span> 本地存储</strong><p>文稿历史和 Token 用量保存在这台设备上。</p></div>
+      </div>
+    </aside>
+    <main>
+      <header class="top"><div class="breadcrumb">工作台 <span aria-hidden="true">/</span> <strong id="crumb">简历</strong></div><button type="button" id="settings-open" class="pill"><span id="api-dot" class="dot"></span><span id="api-label">配置 API</span><span aria-hidden="true">⌄</span></button></header>
+      <div class="dashboard">
+        <div class="intro">
+          <div><h1 id="page-title">生成简历</h1><p id="kind-description">先选目标岗位，再填写经历和成绩。</p><div class="model-guide"><span>推荐模型</span><code id="recommended-openai">gpt-5.4-mini</code><code id="recommended-deepseek">deepseek-flash</code></div></div>
+          <div class="format" id="format-label">可导出 Word / Markdown</div>
+        </div>
+        <p id="offline-note" class="offline-note" hidden>当前是界面预览。要接入真实 API 或导出 Office 文件，请解压完整测试包并运行 <code>start.cmd</code>。</p>
+        <div class="workspace">
+          <section class="panel compose" aria-labelledby="compose-title">
+            <div class="panel-head"><h2 id="compose-title">简历问卷</h2><button type="button" class="text-button" id="fill-example">填入示例</button></div>
+            <form id="compose-form">
+              <fieldset class="material-fields" id="material-fields" hidden>
+                <legend>上传参考材料 <small>选填</small></legend>
+                <div class="material-upload">
+                  <button type="button" id="material-choose" class="button primary">上传文件</button>
+                  <input id="material-input" type="file" multiple hidden accept=".pdf,.docx,.pptx,.txt,.md,.csv,.tsv,.png,.jpg,.jpeg">
+                  <button type="button" id="paste-material" class="text-button">粘贴材料</button>
+                  <p id="material-hint">最多 5 份。Word 和 PPT 单份 64 MB，其余单份 12 MB。</p>
+                </div>
+                <p class="material-note">材料在本机读取。点开文件可核对或修改，生成时会发送这里保留的文字。</p>
+                <div id="material-list"></div>
+                <p id="material-status" class="feedback" role="status"></p>
+                <p id="material-count" class="material-note" hidden></p>
+              </fieldset>
+              <label for="topic" class="field-head"><span id="topic-label">目标岗位</span><small id="topic-status">必填</small></label>
+              <input id="topic" type="text" maxlength="120" placeholder="例如：产品实习生" spellcheck="false">
+              <fieldset id="resume-templates" class="resume-fields">
+                <legend>简历模板</legend>
+                <div class="resume-options">
+                  <button type="button" data-resume-style="classic" aria-pressed="true"><i aria-hidden="true"></i>简洁色条</button>
+                  <button type="button" data-resume-style="sidebar" aria-pressed="false"><i aria-hidden="true"></i>深蓝双栏</button>
+                  <button type="button" data-resume-style="jade" aria-pressed="false"><i aria-hidden="true"></i>青绿页眉</button>
+                  <button type="button" data-resume-style="form" aria-pressed="false"><i aria-hidden="true"></i>表格登记</button>
+                </div>
+              </fieldset>
+              <fieldset class="resume-fields" id="resume-fields">
+                <legend>个人资料 <small>按实际情况填写</small></legend>
+                <div class="questionnaire">
+                  <label>姓名<input id="resume-name" data-resume="姓名" maxlength="60" autocomplete="name"></label>
+                  <label>学校和专业<input id="resume-school" data-resume="学校和专业" maxlength="120" placeholder="学校、专业、毕业年份"></label>
+                  <label>联系电话<input id="resume-phone" data-resume="联系电话" type="tel" maxlength="60" autocomplete="tel"></label>
+                  <label>电子邮箱<input id="resume-email" data-resume="电子邮箱" type="email" maxlength="100" autocomplete="email"></label>
+                  <label>成绩与排名<textarea id="resume-grades" data-resume="成绩与排名" maxlength="600" rows="2" placeholder="GPA、专业排名、相关课程"></textarea></label>
+                  <label>获奖<textarea id="resume-awards" data-resume="获奖" maxlength="900" rows="2" placeholder="竞赛名称、奖项、时间"></textarea></label>
+                  <label>荣誉<textarea id="resume-honors" data-resume="荣誉" maxlength="900" rows="2" placeholder="奖学金、荣誉称号等"></textarea></label>
+                  <label>特长与技能<textarea id="resume-strengths" data-resume="特长与技能" maxlength="900" rows="2" placeholder="语言、软件工具、其他特长"></textarea></label>
+                  <label class="question-wide">项目、实习或校园经历<textarea id="resume-experience" data-resume="项目、实习或校园经历" maxlength="3600" rows="3" placeholder="做过什么、你负责什么、取得什么结果"></textarea></label>
+                </div>
+                <div class="photo-upload">
+                  <div class="photo-thumb"><span aria-hidden="true">照</span><img id="photo-thumb" alt="已选简历照片" hidden></div>
+                  <div class="photo-copy"><strong>简历照片 <small>选填</small></strong><p>JPG 或 PNG，最多 5 MB。用于预览和 Word 简历。</p>
+                    <div class="photo-actions"><label for="photo-input" class="button secondary">选择照片</label><input id="photo-input" class="sr-only" type="file" accept="image/jpeg,image/png"><button type="button" id="photo-remove" class="text-button" hidden>移除</button></div>
+                    <p id="photo-status" class="feedback" role="status"></p>
+                  </div>
+                </div>
+              </fieldset>
+              <label for="prompt" class="field-head"><span id="prompt-label">补充要求</span><small id="prompt-status">选填</small></label>
+              <textarea id="prompt" required maxlength="16000" spellcheck="false"></textarea>
+              <div class="input-meta"><span id="prompt-help"></span><span class="counter" id="counter">0 / 16,000</span></div>
+              <div id="search-option" class="search-option" hidden>
+                <label for="web-search"><input id="web-search" type="checkbox" aria-describedby="search-help"> 联网查证</label>
+                <p id="search-help"></p>
+              </div>
+              <button type="submit" class="button primary" id="generate"><span aria-hidden="true">✦</span> 生成文稿</button>
+              <p class="feedback" id="generate-status" role="status"></p>
+            </form>
+          </section>
+          <section class="panel preview" aria-labelledby="preview-title">
+            <div class="panel-head preview-head"><div><h2 id="preview-title">文稿预览</h2><p id="preview-meta">生成后可编辑并导出</p></div><button type="button" id="edit" class="button secondary" disabled>编辑</button></div>
+            <div class="canvas" id="canvas">
+              <div id="empty" class="empty"><div class="paper-art" aria-hidden="true"><div class="paper-back"></div><div class="paper-icon"><b></b><i></i><i></i><i></i><i></i></div></div><strong>文稿会出现在这里</strong><p>生成后，可在这里检查并编辑内容。</p><button type="button" id="demo" class="button secondary">查看示例 <span aria-hidden="true">↗</span></button></div>
+              <article id="document" class="document" hidden></article>
+              <label class="sr-only" for="editor">编辑 Markdown 文稿</label>
+              <textarea id="editor" spellcheck="false" maxlength="120000" hidden></textarea>
+            </div>
+            <section id="search-sources" class="search-sources" aria-labelledby="search-sources-title" hidden>
+              <h3 id="search-sources-title">联网来源</h3>
+              <p id="search-summary" role="status"></p>
+              <ol id="search-source-list"></ol>
+            </section>
+            <div class="preview-foot"><p id="export-status" class="feedback" role="status"></p><div class="downloads"><button type="button" class="button secondary" id="copy-letter" hidden disabled>复制誊写稿</button><button type="button" class="button secondary" id="download-md" disabled>Markdown</button><button type="button" class="button primary" id="download-office" disabled>下载 Word</button></div></div>
+          </section>
+        </div>
+        <section class="usage panel" aria-labelledby="usage-title">
+          <div class="usage-head"><h2 id="usage-title">Token 用量</h2><p class="usage-note" id="usage-note" aria-live="polite">按 API 回传用量累计。</p></div>
+          <div class="stats">
+            <div><span>累计</span><strong id="total-tokens">—</strong></div>
+            <div><span>输入</span><strong id="prompt-tokens">—</strong></div>
+            <div><span>输出</span><strong id="completion-tokens">—</strong></div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <dialog id="settings" aria-labelledby="settings-title">
+    <form id="settings-form">
+      <div class="dialog-head"><div><h2 id="settings-title">连接模型 API</h2><p>填写支持 Chat Completions 的 API 地址和模型。</p></div><button type="button" class="close" data-close="settings" aria-label="关闭设置">×</button></div>
+      <div id="settings-live">
+        <label for="api">API 基础地址</label><input id="api" type="url" maxlength="2000" value="https://api.openai.com/v1" required spellcheck="false">
+        <label for="model">模型名称</label><input id="model" maxlength="200" placeholder="填写服务商提供的模型 ID" required spellcheck="false">
+        <label for="key">API Key <small>本机无鉴权服务可留空</small></label><input id="key" type="password" maxlength="4096" autocomplete="off" spellcheck="false">
+        <p class="dialog-help">API Key 仅在当前页面的内存中保留。生成时，要求和密钥会发送给你配置的服务。</p>
+        <div class="dialog-actions"><button type="button" class="button secondary" data-close="settings">取消</button><button type="submit" class="button primary">应用配置</button></div>
+      </div>
+      <div id="settings-offline" hidden>
+        <p class="dialog-help">当前打开的是预览文件。请解压完整测试包，双击 <code>start.cmd</code> 启动 Python 工作台，再在打开的页面配置 API。</p>
+        <div class="dialog-actions"><button type="button" class="button secondary" data-close="settings">返回预览</button><a class="button primary" href="http://127.0.0.1:8765/" target="_blank" rel="noopener">打开运行中的工作台</a></div>
+      </div>
+    </form>
+  </dialog>
+  <dialog id="history" aria-labelledby="history-title">
+    <div class="dialog-head"><div><h2 id="history-title">生成历史</h2><p>最近 50 份本地文稿。删除正文后仍保留用量。</p></div><button type="button" class="close" data-close="history" aria-label="关闭历史">×</button></div>
+    <p class="feedback" id="history-status" role="status"></p>
+    <ul id="history-list" class="history-list"></ul>
+  </dialog>
+</body>
+</html>
