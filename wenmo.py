@@ -9,6 +9,8 @@ import os
 import re
 import secrets
 import sqlite3
+import sys
+import threading
 import webbrowser
 from contextlib import contextmanager
 from datetime import date, datetime, timezone
@@ -504,6 +506,7 @@ def main():
     parser.add_argument("--port", type=int, help="默认使用 8765，端口占用时自动换一个。")
     parser.add_argument("--data", type=Path, default=DATA)
     parser.add_argument("--no-browser", action="store_true")
+    parser.add_argument("--stop-on-stdin-close", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
     if args.port is not None and not 0 <= args.port <= 65535:
         parser.error("--port must be between 0 and 65535")
@@ -517,6 +520,12 @@ def main():
     except (OSError, sqlite3.Error) as error:
         parser.exit(1, f"无法启动文墨工作台：{error}\n")
     with server:
+        if args.stop_on_stdin_close:
+            def stop_with_launcher():
+                sys.stdin.buffer.read(1)
+                server.shutdown()
+
+            threading.Thread(target=stop_with_launcher, daemon=True).start()
         print(f"文墨工作台：{server.origin}  ·  按 Ctrl+C 停止", flush=True)
         if not args.no_browser:
             webbrowser.open(server.origin)

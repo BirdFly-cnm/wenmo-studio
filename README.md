@@ -4,7 +4,13 @@
 
 一个自带 API 的本地文档生成客户端。选择文档类型、填写要求，用自己的模型生成初稿。可以预览、编辑、下载，并查看模型服务回传的 Token 用量。
 
-## 启动
+## Windows 安装版
+
+在 Windows 10 或 11 的 x64 电脑上双击安装程序。安装只作用于当前账户，内含 Python 和 PDF 读取组件。「浏览」可选择程序安装位置。从开始菜单打开「文墨工作台」会自动启动本地服务并打开网页。关闭启动窗口会停止服务。
+
+安装版历史文稿和 Token 用量保存在 `%LOCALAPPDATA%\WenmoStudio\data\wenmo.sqlite3`。重新安装和卸载时保留该目录。扫描件 OCR 仍使用单独安装的 Tesseract 与相应语言包。
+
+## 从源码启动
 
 需要 Python 3.10 或更高版本。Windows x64 测试包带有 PDF 读取组件和本地前端资源。直接运行源码或在其他平台使用 PDF 功能时，请先运行 `python -m pip install -r requirements.txt`。
 
